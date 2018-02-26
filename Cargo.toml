@@ -1,0 +1,9 @@
+[package]
+name = "raytracer"
+version = "0.1.0"
+authors = ["user"]
+
+[dependencies]
+image = "0.18.0"
+rand = "0.4"
+num-complex = "0.1.32"
