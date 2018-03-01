@@ -1,7 +1,8 @@
 use std::ops::Add;
 use std::ops::Sub;
+use image::Rgb;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Vector<T> {
     pub x: T,
     pub y: T,
@@ -17,7 +18,11 @@ impl Vector<f32> {
 
     pub fn norm(self) -> Self {
         let length = self.length();
-        Vector { x: self.x / length, y: self.y / length, z: self.z /length  }
+        Vector {
+            x: self.x / length,
+            y: self.y / length,
+            z: self.z / length,
+        }
     }
 
     fn length(&self) -> f32 {
@@ -49,28 +54,45 @@ impl<T: Sub<Output = T>> Sub for Vector<T> {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
+pub struct Image {
+    pub width: usize,
+    pub height: usize,
+    pub pixels: Vec<Rgb<u8>>,
+}
+
+impl Image {
+    pub fn new(width: usize, height: usize) -> Self {
+        Image {
+            width,
+            height,
+            pixels: vec![Rgb([0, 0, 0]); width * height],
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct Sphere {
     pub center: Vector<f32>,
     pub radius: f32,
 }
 
-pub fn intersect(sphere: Sphere, origin: VectorF, direction: VectorF) -> Result<(f32, f32), ()> {
-    let l = sphere.center - origin;
+pub fn intersect(sphere: &Sphere, origin: &VectorF, direction: &VectorF) -> Option<(f32, f32)> {
+    let l = sphere.center - *origin;
 
-    let tca = &l.dot(&direction);
-    if tca < &0. {
-        return Err(());
+    let tca = l.dot(direction);
+    if tca < 0. {
+        return None;
     };
 
     let d2 = &l.dot(&l) - tca * tca;
     if d2 > sphere.radius.powf(2.) {
-        return Err(());
+        return None;
     }
     let thc = (sphere.radius.powf(2.) - d2).sqrt();
     let t0 = tca - thc;
     let t1 = tca + thc;
-    Ok((t0, t1))
+    Some((t0, t1))
 }
 
 #[test]
@@ -100,9 +122,9 @@ fn test_vector() {
         radius: 20.0,
     };
 
-    println!("v1 + v2 {:?}", intersect(sphere, v2, v3));
-    println!("v1.length() {}", v1.length());
-    println!("v1.norm() {:?}", v1.norm());
+    println!("v1.norm()\n{:#?}", v1);
 
-    assert!(false);
+    assert!(intersect(&sphere, &v2, &v3).is_none());
+    assert_eq!(3.7416575, v1.length());
+    assert!(v1.length() - v1.norm().dot(&v1) < 0.0001);
 }
