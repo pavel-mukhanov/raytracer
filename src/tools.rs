@@ -83,7 +83,6 @@ impl<T: Sub<Output = T>> Sub for Vector<T> {
 }
 
 impl Mul<f32> for VectorF {
-    // The multiplication of rational numbers is a closed operation.
     type Output = Self;
 
     fn mul(self, rhs: f32) -> Self {
@@ -96,7 +95,6 @@ impl Mul<f32> for VectorF {
 }
 
 impl Mul for VectorF {
-    // The multiplication of rational numbers is a closed operation.
     type Output = Self;
 
     fn mul(self, rhs: VectorF) -> Self {
