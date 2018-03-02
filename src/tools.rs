@@ -1,6 +1,10 @@
 use std::ops::Add;
 use std::ops::Sub;
+use std::ops::Mul;
+use std::ops::Neg;
 use image::Rgb;
+
+pub const INFINITY: f32 = 10_000_000.;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vector<T> {
@@ -11,8 +15,32 @@ pub struct Vector<T> {
 
 pub type VectorF = Vector<f32>;
 
+pub const ZERO_VECTOR: &VectorF = &VectorF {
+    x: 0.,
+    y: 0.,
+    z: 0.,
+};
+
+pub const COLOR_RED: &VectorF = &VectorF {
+    x: 1.,
+    y: 0.,
+    z: 0.,
+};
+
+pub const COLOR_GREEN: &VectorF = &VectorF {
+    x: 0.,
+    y: 1.,
+    z: 0.,
+};
+
+pub const COLOR_BLUE: &VectorF = &VectorF {
+    x: 0.,
+    y: 0.,
+    z: 1.,
+};
+
 impl Vector<f32> {
-    fn dot(&self, v: &Vector<f32>) -> f32 {
+    pub fn dot(&self, v: &Vector<f32>) -> f32 {
         self.x * v.x + self.y * v.y + self.z * v.z
     }
 
@@ -54,6 +82,52 @@ impl<T: Sub<Output = T>> Sub for Vector<T> {
     }
 }
 
+impl Mul<f32> for VectorF {
+    // The multiplication of rational numbers is a closed operation.
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self {
+        VectorF {
+            x: self.x * rhs,
+            y: self.y * rhs,
+            z: self.z * rhs,
+        }
+    }
+}
+
+impl Mul for VectorF {
+    // The multiplication of rational numbers is a closed operation.
+    type Output = Self;
+
+    fn mul(self, rhs: VectorF) -> Self {
+        VectorF {
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+            z: self.z * rhs.z,
+        }
+    }
+}
+
+impl Neg for VectorF {
+    type Output = Self;
+
+    fn neg(self) -> Self {
+        VectorF {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
+        }
+    }
+}
+
+impl From<VectorF> for Rgb<u8> {
+    fn from(vector: VectorF) -> Self {
+        let norm = vector.norm();
+
+        Rgb([(norm.x * 255.0) as u8, (norm.y * 255.0) as u8, (norm.z * 255.0) as u8])
+    }
+}
+
 #[derive(Debug)]
 pub struct Image {
     pub width: usize,
@@ -73,8 +147,9 @@ impl Image {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Sphere {
-    pub center: Vector<f32>,
+    pub center: VectorF,
     pub radius: f32,
+    pub surface_color: VectorF,
 }
 
 pub fn intersect(sphere: &Sphere, origin: &VectorF, direction: &VectorF) -> Option<(f32, f32)> {
@@ -93,6 +168,10 @@ pub fn intersect(sphere: &Sphere, origin: &VectorF, direction: &VectorF) -> Opti
     let t0 = tca - thc;
     let t1 = tca + thc;
     Some((t0, t1))
+}
+
+pub fn mix(a: f32, b: f32, mix: f32) -> f32 {
+    b * mix + a * (1. - mix)
 }
 
 #[test]
