@@ -1,7 +1,4 @@
-use std::ops::Add;
-use std::ops::Sub;
-use std::ops::Mul;
-use std::ops::Neg;
+use std::ops::{Add, Sub, Mul, Neg, AddAssign};
 use image::Rgb;
 
 pub const INFINITY: f32 = 10_000_000.;
@@ -21,22 +18,40 @@ pub const ZERO_VECTOR: &VectorF = &VectorF {
     z: 0.,
 };
 
+pub const ONE_VECTOR: &VectorF = &VectorF {
+    x: 1.,
+    y: 1.,
+    z: 1.,
+};
+
 pub const COLOR_RED: &VectorF = &VectorF {
     x: 1.,
-    y: 0.,
-    z: 0.,
+    y: 0.0,
+    z: 0.0,
 };
 
 pub const COLOR_GREEN: &VectorF = &VectorF {
-    x: 0.,
+    x: 0.1,
     y: 1.,
-    z: 0.,
+    z: 0.2,
 };
 
 pub const COLOR_BLUE: &VectorF = &VectorF {
-    x: 0.,
+    x: 0.3,
     y: 0.,
     z: 1.,
+};
+
+pub const LIGHT: &VectorF = &VectorF {
+    x: 1.,
+    y: 1.,
+    z: 1.,
+};
+
+pub const COLOR_GRAY: &VectorF = &VectorF {
+    x: 0.1,
+    y: 0.1,
+    z: 0.1,
 };
 
 impl Vector<f32> {
@@ -118,11 +133,23 @@ impl Neg for VectorF {
     }
 }
 
+impl AddAssign for VectorF {
+    fn add_assign(&mut self, other: VectorF) {
+        *self = VectorF {
+            x: self.x + other.x,
+            y: self.y + other.y,
+            z: self.z + other.z,
+        };
+    }
+}
+
 impl From<VectorF> for Rgb<u8> {
     fn from(vector: VectorF) -> Self {
-        let norm = vector.norm();
-
-        Rgb([(norm.x * 255.0) as u8, (norm.y * 255.0) as u8, (norm.z * 255.0) as u8])
+        Rgb([
+            (vector.x * 255.0) as u8,
+            (vector.y * 255.0) as u8,
+            (vector.z * 255.0) as u8,
+        ])
     }
 }
 
@@ -148,6 +175,9 @@ pub struct Sphere {
     pub center: VectorF,
     pub radius: f32,
     pub surface_color: VectorF,
+    pub transparency: f32,
+    pub reflection: f32,
+    pub emission_color: VectorF,
 }
 
 pub fn intersect(sphere: &Sphere, origin: &VectorF, direction: &VectorF) -> Option<(f32, f32)> {
@@ -197,6 +227,10 @@ fn test_vector() {
             z: 0.0,
         },
         radius: 20.0,
+        surface_color: *COLOR_BLUE,
+        transparency: 0.5,
+        reflection: 0.3,
+        emission_color: *COLOR_BLUE,
     };
 
     println!("v1.norm()\n{:#?}", v1);
